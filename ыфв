@@ -133,21 +133,7 @@ Board *create_interactive_board() {
         return NULL;
     }
 
-    board->tiles = (Tile ***) calloc(board->row_count, sizeof(Tile **));
-    if (board->tiles == NULL) {
-        free(board);
-        return NULL;
-    }
-
     for (int row = 0; row < board->row_count; row++) {
-        board->tiles[row] = (Tile **) calloc(board->column_count, sizeof(Tile *));
-        if (board->tiles[row] == NULL) {
-            for (int i = 0; i < row; i++) free(board->tiles[i]);
-            free(board->tiles);
-            free(board);
-            return NULL;
-        }
-
         for (int column = 0; column < board->column_count; column++) {
             board->tiles[row][column] = (Tile *) calloc(1, sizeof(Tile));
             if (board->tiles[row][column] == NULL) {
@@ -155,12 +141,11 @@ Board *create_interactive_board() {
                     for (int j = 0; j < (i == row ? column : board->column_count); j++) {
                         free(board->tiles[i][j]);
                     }
-                    free(board->tiles[i]);
                 }
-                free(board->tiles);
                 free(board);
                 return NULL;
             }
+
             board->tiles[row][column]->tile_state = CLOSED;
             board->tiles[row][column]->is_mine = false;
         }
@@ -168,6 +153,7 @@ Board *create_interactive_board() {
 
     return board;
 }
+
 
 /**
  * Create and initialize Board with specified parameters.
@@ -187,34 +173,20 @@ Board *create_board(int row_count, int column_count, int mine_count) {
     board->column_count = column_count;
     board->mine_count = mine_count;
 
-    board->tiles = (Tile ***) calloc(board->row_count, sizeof(Tile **));
-    if (board->tiles == NULL) {
-        free(board);
-        return NULL;
-    }
-
     for (int row = 0; row < board->row_count; row++) {
-        board->tiles[row] = (Tile **) calloc(board->column_count, sizeof(Tile *));
-        if (board->tiles[row] == NULL) {
-            for (int i = 0; i < row; i++) free(board->tiles[i]);
-            free(board->tiles);
-            free(board);
-            return NULL;
-        }
-
         for (int column = 0; column < board->column_count; column++) {
             board->tiles[row][column] = (Tile *) calloc(1, sizeof(Tile));
             if (board->tiles[row][column] == NULL) {
+                // очистка уже выделенной памяти
                 for (int i = 0; i <= row; i++) {
                     for (int j = 0; j < (i == row ? column : board->column_count); j++) {
                         free(board->tiles[i][j]);
                     }
-                    free(board->tiles[i]);
                 }
-                free(board->tiles);
                 free(board);
                 return NULL;
             }
+
             board->tiles[row][column]->tile_state = CLOSED;
             board->tiles[row][column]->is_mine = false;
         }
@@ -222,6 +194,7 @@ Board *create_board(int row_count, int column_count, int mine_count) {
 
     return board;
 }
+
 
 /**
  * Free all memory used by Board and its Tiles.
