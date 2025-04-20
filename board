@@ -140,8 +140,9 @@ bool read_board_parameters(int* row_count, int* col_count, int* mine_count) {
  */
 Board *create_our_board() {
     Board *board = (Board *) calloc(1, sizeof(Board));
-    if (board == NULL) return NULL;
-
+    if (board == NULL) {
+    return NULL;
+    }
     board->row_count = 0;
     board->column_count = 0;
     board->mine_count = 0;
@@ -154,7 +155,6 @@ Board *create_our_board() {
         for (int column = 0; column < board->column_count; column++) {
             board->tiles[row][column] = (Tile *) calloc(1, sizeof(Tile));
             if (board->tiles[row][column] == NULL) {
-                // Clean up previously allocated tiles
                 for (int i = 0; i < row; i++) {
                     for (int j = 0; j < board->column_count; j++) {
                         free(board->tiles[i][j]);
@@ -170,7 +170,6 @@ Board *create_our_board() {
             board->tiles[row][column]->is_mine = false;
         }
     }
-    // Mines are set after first click in game logic
     return board;
 }
 
@@ -212,7 +211,6 @@ Board *create_board(int row_count, int column_count, int mine_count) {
             board->tiles[row][column]->is_mine = false;
         }
     }
-    // Mines are set after first click in game logic
     return board;
 }
 
