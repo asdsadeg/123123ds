@@ -6,7 +6,7 @@
 
 int main() {
     Game *game = create_game();
-    Board *board = create_our_board();
+    Board *board = create_interactive_board();
     if (board == NULL) {
         printf("Invalid board parameters. Exiting...\n");
         free(game);
