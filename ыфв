@@ -1,0 +1,281 @@
+#include <assert.h>
+#include <stdlib.h>
+#include <time.h>
+#include <stdio.h>
+#include "board.h"
+
+/**
+ * Check if mine is on the current Tile.
+ * @return true if Tile has mine on or false otherwise
+ */
+bool is_mine_on(Board *board, int row, int column) {
+    assert(board != NULL);
+    return row >= 0 && row < board->row_count &&
+           column >= 0 && column < board->column_count &&
+           board->tiles[row][column]->is_mine;
+}
+
+/**
+ * Count number of mines surrounding a tile.
+ * @return count of neighbouring mines
+ */
+int count_neighbour_mines(Board *board, int row, int column) {
+    assert(board != NULL);
+    int count = 0;
+    for (int drow = -1; drow <= 1; drow++) {
+        for (int dcolumn = -1; dcolumn <= 1; dcolumn++) {
+            if (is_mine_on(board, row + drow, column + dcolumn)) {
+                count++;
+            }
+        }
+    }
+    return count;
+}
+
+/**
+ * Set values to tiles based on surrounding mines.
+ * Mines get value -1, other tiles get mine count.
+ */
+void set_tile_values(Board *board) {
+    assert(board != NULL);
+    for (int row = 0; row < board->row_count; row++) {
+        for (int column = 0; column < board->column_count; column++) {
+            if (board->tiles[row][column]->is_mine) {
+                board->tiles[row][column]->value = -1;
+            } else {
+                board->tiles[row][column]->value =
+                        count_neighbour_mines(board, row, column);
+            }
+        }
+    }
+}
+
+/**
+ * Mark all closed tiles as mines (used when game is won).
+ */
+void mark_all_mines(Board *board) {
+    assert(board != NULL);
+    for (int row = 0; row < board->row_count; row++) {
+        for (int column = 0; column < board->column_count; column++) {
+            if (board->tiles[row][column]->tile_state == CLOSED) {
+                board->tiles[row][column]->tile_state = MARKED;
+            }
+        }
+    }
+}
+
+/**
+ * Generate random number in range [0, upper_range).
+ */
+int generate_random_coordinates(int upper_range) {
+    return rand() % upper_range;
+}
+
+/**
+ * Place mines randomly on the board.
+ * Skips the tile of first click.
+ */
+void set_mines_randomly(Board *board, int first_click_row, int first_click_column) {
+    assert(board != NULL);
+    int placed = 0;
+    srand((unsigned int) time(NULL));
+    while (placed < board->mine_count) {
+        int row = rand() % board->row_count;
+        int col = rand() % board->column_count;
+
+        if ((row == first_click_row && col == first_click_column) ||
+            board->tiles[row][col]->is_mine) {
+            continue;
+        }
+
+        board->tiles[row][col]->is_mine = true;
+        placed++;
+    }
+}
+
+/**
+ * Prompt user for board size and mine count. Validates input.
+ * @return true if successful, false otherwise
+ */
+bool input_board_parameters(int *row_count, int *col_count, int *mine_count) {
+    printf("Please enter row count: ");
+    if (scanf("%d", row_count) != 1 || *row_count <= 0 || *row_count > MAX_ROW_COUNT) {
+        perror("Invalid row count (1-30)");
+        return false;
+    }
+
+    printf("Please enter column count: ");
+    if (scanf("%d", col_count) != 1 || *col_count <= 0 || *col_count > MAX_COLUMN_COUNT) {
+        perror("Invalid column count (1-30)");
+        return false;
+    }
+
+    printf("Please enter mine count: ");
+    if (scanf("%d", mine_count) != 1 || *mine_count <= 0 ||
+        *mine_count >= (*row_count) * (*col_count)) {
+        perror("Invalid mine count (must be >0 and less than total tiles)");
+        return false;
+    }
+
+    return true;
+}
+
+/**
+ * Allocate and initialize a Board using user input.
+ * @return pointer to initialized Board or NULL on failure
+ */
+Board *create_interactive_board() {
+    Board *board = (Board *) calloc(1, sizeof(Board));
+    if (board == NULL) return NULL;
+
+    if (!input_board_parameters(&board->row_count, &board->column_count, &board->mine_count)) {
+        free(board);
+        return NULL;
+    }
+
+    board->tiles = (Tile ***) calloc(board->row_count, sizeof(Tile **));
+    if (board->tiles == NULL) {
+        free(board);
+        return NULL;
+    }
+
+    for (int row = 0; row < board->row_count; row++) {
+        board->tiles[row] = (Tile **) calloc(board->column_count, sizeof(Tile *));
+        if (board->tiles[row] == NULL) {
+            for (int i = 0; i < row; i++) free(board->tiles[i]);
+            free(board->tiles);
+            free(board);
+            return NULL;
+        }
+
+        for (int column = 0; column < board->column_count; column++) {
+            board->tiles[row][column] = (Tile *) calloc(1, sizeof(Tile));
+            if (board->tiles[row][column] == NULL) {
+                for (int i = 0; i <= row; i++) {
+                    for (int j = 0; j < (i == row ? column : board->column_count); j++) {
+                        free(board->tiles[i][j]);
+                    }
+                    free(board->tiles[i]);
+                }
+                free(board->tiles);
+                free(board);
+                return NULL;
+            }
+            board->tiles[row][column]->tile_state = CLOSED;
+            board->tiles[row][column]->is_mine = false;
+        }
+    }
+
+    return board;
+}
+
+/**
+ * Create and initialize Board with specified parameters.
+ * @return pointer to Board or NULL on invalid input or failure
+ */
+Board *create_board(int row_count, int column_count, int mine_count) {
+    if (row_count <= 0 || row_count > MAX_ROW_COUNT ||
+        column_count <= 0 || column_count > MAX_COLUMN_COUNT ||
+        mine_count <= 0 || mine_count >= row_count * column_count) {
+        return NULL;
+    }
+
+    Board *board = (Board *) calloc(1, sizeof(Board));
+    if (board == NULL) return NULL;
+
+    board->row_count = row_count;
+    board->column_count = column_count;
+    board->mine_count = mine_count;
+
+    board->tiles = (Tile ***) calloc(board->row_count, sizeof(Tile **));
+    if (board->tiles == NULL) {
+        free(board);
+        return NULL;
+    }
+
+    for (int row = 0; row < board->row_count; row++) {
+        board->tiles[row] = (Tile **) calloc(board->column_count, sizeof(Tile *));
+        if (board->tiles[row] == NULL) {
+            for (int i = 0; i < row; i++) free(board->tiles[i]);
+            free(board->tiles);
+            free(board);
+            return NULL;
+        }
+
+        for (int column = 0; column < board->column_count; column++) {
+            board->tiles[row][column] = (Tile *) calloc(1, sizeof(Tile));
+            if (board->tiles[row][column] == NULL) {
+                for (int i = 0; i <= row; i++) {
+                    for (int j = 0; j < (i == row ? column : board->column_count); j++) {
+                        free(board->tiles[i][j]);
+                    }
+                    free(board->tiles[i]);
+                }
+                free(board->tiles);
+                free(board);
+                return NULL;
+            }
+            board->tiles[row][column]->tile_state = CLOSED;
+            board->tiles[row][column]->is_mine = false;
+        }
+    }
+
+    return board;
+}
+
+/**
+ * Free all memory used by Board and its Tiles.
+ */
+void destroy_board(Board *board) {
+    assert(board != NULL);
+    for (int row = 0; row < board->row_count; row++) {
+        for (int column = 0; column < board->column_count; column++) {
+            free(board->tiles[row][column]);
+        }
+        free(board->tiles[row]);
+    }
+    free(board->tiles);
+    free(board);
+}
+
+/**
+ * Check if the game is won (all non-mine tiles are open).
+ * @return true if solved, false otherwise
+ */
+bool is_game_solved(Board *board) {
+    assert(board != NULL);
+    for (int row = 0; row < board->row_count; row++) {
+        for (int column = 0; column < board->column_count; column++) {
+            if (board->tiles[row][column]->tile_state == CLOSED &&
+                !board->tiles[row][column]->is_mine) {
+                return false;
+            }
+        }
+    }
+    mark_all_mines(board);
+    return true;
+}
+
+/**
+ * Check if given coordinates are inside board.
+ */
+bool is_input_data_correct(Board *board, int input_row, int input_column) {
+    assert(board != NULL);
+    return input_row >= 0 && input_row < board->row_count &&
+           input_column >= 0 && input_column < board->column_count;
+}
+
+/**
+ * Reveal all mines after game is lost.
+ */
+void open_all_mines(Board *board) {
+    assert(board != NULL);
+    for (int row = 0; row < board->row_count; row++) {
+        for (int column = 0; column < board->column_count; column++) {
+            if (board->tiles[row][column]->tile_state == CLOSED &&
+                board->tiles[row][column]->is_mine) {
+                board->tiles[row][column]->tile_state = OPEN;
+            }
+        }
+    }
+}
