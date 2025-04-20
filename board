@@ -104,30 +104,30 @@ void set_mines_randomly(Board *board, int first_click_row, int first_click_colum
  * @return true if parameters are valid, false otherwise
  */
 bool read_board_parameters(int* row_count, int* col_count, int* mine_count) {
-    printf("Write pls row count: ");
+    printf("Please enter row count: ");
     scanf("%d", row_count);
     if (*row_count <= 0 || *row_count > MAX_ROW_COUNT) {
-        perror("row count must be between 1 and 30");
+        perror("Row count must be between 1 and 30");
         return false;
     }
 
-    printf("Write pls col count: ");
+    printf("Please enter column count: ");
     scanf("%d", col_count);
     if (*col_count <= 0 || *col_count > MAX_COLUMN_COUNT) {
-        perror("col count must be between 1 and 30");
+        perror("Column count must be between 1 and 30");
         return false;
     }
 
-    printf("Write pls mine count: ");
+    printf("Please enter mine count: ");
     scanf("%d", mine_count);
     if (*mine_count <= 0) {
-        perror("mine count must be greater than zero");
+        perror("Mine count must be greater than zero");
         return false;
     }
 
     int area_field = (*col_count) * (*row_count);
     if (*mine_count >= area_field) {
-        perror("mine count must be less than board area");
+        perror("Mine count must be less than the board area");
         return false;
     }
 
