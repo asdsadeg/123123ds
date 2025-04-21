@@ -53,7 +53,7 @@ int generate_random_coordinates(int upper_range) {
     return rand() % upper_range;
 }
 
-void set_mines_randomly(Board *board) {
+void set_mines_randomly(Board *board, int first_click_row, int first_click_column) {
     assert(board != NULL);
     int board_mine_count = 0;
     srand(time(NULL));
