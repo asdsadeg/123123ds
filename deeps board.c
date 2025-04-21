@@ -82,4 +82,124 @@ bool read_board_parameters(int* row_count, int* col_count, int* mine_count) {
     }
 
     int max_mines = (*row_count) * (*col_count) - 1;
-    printf("Enter number of mines (
+    printf("Enter number of mines (1-%d): ", max_mines);
+    if (scanf("%d", mine_count) != 1 || *mine_count < 1 || *mine_count > max_mines) {
+        fprintf(stderr, "Invalid mine count! Must be between 1 and %d\n", max_mines);
+        return false;
+    }
+    
+    return true;
+}
+
+Board *create_our_board() {
+    Board *board = (Board *)calloc(1, sizeof(Board));
+    if (!board) {
+        fprintf(stderr, "Memory allocation failed for Board\n");
+        return NULL;
+    }
+    
+    if (!read_board_parameters(&board->row_count, &board->column_count, &board->mine_count)) {
+        free(board);
+        return NULL;
+    }
+
+    for (int row = 0; row < board->row_count; row++) {
+        for (int column = 0; column < board->column_count; column++) {
+            board->tiles[row][column] = (Tile *)calloc(1, sizeof(Tile));
+            if (!board->tiles[row][column]) {
+                for (int r = 0; r < row; r++) {
+                    for (int c = 0; c < board->column_count; c++) {
+                        free(board->tiles[r][c]);
+                    }
+                }
+                for (int c = 0; c < column; c++) {
+                    free(board->tiles[row][c]);
+                }
+                free(board);
+                fprintf(stderr, "Memory allocation failed for Tile at (%d,%d)\n", row, column);
+                return NULL;
+            }
+            board->tiles[row][column]->tile_state = CLOSED;
+            board->tiles[row][column]->is_mine = false;
+        }
+    }
+    
+    set_mines_randomly(board);
+    set_tile_values(board);
+    return board;
+}
+
+Board *create_board(int row_count, int column_count, int mine_count) {
+    Board *board = (Board *)calloc(1, sizeof(Board));
+    if (!board) return NULL;
+    
+    board->row_count = row_count;
+    board->column_count = column_count;
+    board->mine_count = mine_count;
+
+    for (int row = 0; row < board->row_count; row++) {
+        for (int column = 0; column < board->column_count; column++) {
+            board->tiles[row][column] = (Tile *)calloc(1, sizeof(Tile));
+            if (!board->tiles[row][column]) {
+                for (int r = 0; r < row; r++) {
+                    for (int c = 0; c < board->column_count; c++) {
+                        free(board->tiles[r][c]);
+                    }
+                }
+                for (int c = 0; c < column; c++) {
+                    free(board->tiles[row][c]);
+                }
+                free(board);
+                return NULL;
+            }
+            board->tiles[row][column]->tile_state = CLOSED;
+            board->tiles[row][column]->is_mine = false;
+        }
+    }
+    set_mines_randomly(board);
+    set_tile_values(board);
+    return board;
+}
+
+void destroy_board(Board *board) {
+    if (board == NULL) return;
+
+    for (int row = 0; row < board->row_count; row++) {
+        for (int column = 0; column < board->column_count; column++) {
+            free(board->tiles[row][column]);
+        }
+    }
+    free(board);
+}
+
+bool is_game_solved(Board *board) {
+    assert(board != NULL);
+    for (int row = 0; row < board->row_count; row++) {
+        for (int column = 0; column < board->column_count; column++) {
+            if (board->tiles[row][column]->tile_state == CLOSED
+                && !board->tiles[row][column]->is_mine) {
+                return false;
+            }
+        }
+    }
+    mark_all_mines(board);
+    return true;
+}
+
+bool is_input_data_correct(Board *board, int input_row, int input_column) {
+    assert(board != NULL);
+    return input_row >= 0 && board->row_count > input_row
+           && input_column >= 0 && board->column_count > input_column;
+}
+
+void open_all_mines(Board *board) {
+    assert(board != NULL);
+    for (int row = 0; row < board->row_count; row++) {
+        for (int column = 0; column < board->column_count; column++) {
+            if (board->tiles[row][column]->tile_state == CLOSED
+                && board->tiles[row][column]->is_mine) {
+                board->tiles[row][column]->tile_state = OPEN;
+            }
+        }
+    }
+}
