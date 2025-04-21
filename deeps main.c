@@ -23,6 +23,5 @@ int main() {
     game->board = board;
     play_game(game);
     destroy_game(game);
-    dialog();
     return EXIT_SUCCESS;
 }
