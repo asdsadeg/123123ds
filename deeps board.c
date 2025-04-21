@@ -68,16 +68,17 @@ void set_mines_randomly(Board *board, int first_click_row, int first_click_colum
     }
 }
 
+// board.c
 bool read_board_parameters(int* row_count, int* col_count, int* mine_count) {
-    printf("Enter number of rows (%d-%d): ", MIN_ROW_COUNT, MAX_ROW_COUNT);
-    if (scanf("%d", row_count) != 1 || *row_count < MIN_ROW_COUNT || *row_count > MAX_ROW_COUNT) {
-        fprintf(stderr, "Invalid row count! Must be between %d and %d\n", MIN_ROW_COUNT, MAX_ROW_COUNT);
+    printf("Enter number of rows (minimum %d): ", MIN_ROW_COUNT);
+    if (scanf("%d", row_count) != 1 || *row_count < MIN_ROW_COUNT) {
+        fprintf(stderr, "Invalid row count! Must be at least %d\n", MIN_ROW_COUNT);
         return false;
     }
 
-    printf("Enter number of columns (%d-%d): ", MIN_COLUMN_COUNT, MAX_COLUMN_COUNT);
-    if (scanf("%d", col_count) != 1 || *col_count < MIN_COLUMN_COUNT || *col_count > MAX_COLUMN_COUNT) {
-        fprintf(stderr, "Invalid column count! Must be between %d and %d\n", MIN_COLUMN_COUNT, MAX_COLUMN_COUNT);
+    printf("Enter number of columns (minimum %d): ", MIN_COLUMN_COUNT);
+    if (scanf("%d", col_count) != 1 || *col_count < MIN_COLUMN_COUNT) {
+        fprintf(stderr, "Invalid column count! Must be at least %d\n", MIN_COLUMN_COUNT);
         return false;
     }
 
@@ -93,72 +94,43 @@ bool read_board_parameters(int* row_count, int* col_count, int* mine_count) {
 
 Board *create_our_board(int first_click_row, int first_click_column) {
     Board *board = (Board *)calloc(1, sizeof(Board));
-    if (!board) {
-        fprintf(stderr, "Memory allocation failed for Board\n");
-        return NULL;
-    }
+    if (!board) return NULL;
     
     if (!read_board_parameters(&board->row_count, &board->column_count, &board->mine_count)) {
         free(board);
         return NULL;
     }
 
+    // Выделяем память для двумерного массива
+    board->tiles = (Tile **)malloc(board->row_count * sizeof(Tile *));
     for (int row = 0; row < board->row_count; row++) {
-        for (int column = 0; column < board->column_count; column++) {
-            board->tiles[row][column] = (Tile *)calloc(1, sizeof(Tile));
-            if (!board->tiles[row][column]) {
-                // Cleanup code...
-                return NULL;
-            }
-            board->tiles[row][column]->tile_state = CLOSED;
-            board->tiles[row][column]->is_mine = false;
+        board->tiles[row] = (Tile *)calloc(board->column_count, sizeof(Tile));
+        if (!board->tiles[row]) {
+            // Cleanup если выделение не удалось
+            for (int r = 0; r < row; r++) free(board->tiles[r]);
+            free(board->tiles);
+            free(board);
+            return NULL;
         }
     }
-    
+
     set_mines_randomly(board, first_click_row, first_click_column);
     set_tile_values(board);
     return board;
 }
 
-Board *create_board(int row_count, int column_count, int mine_count) {
-    Board *board = (Board *)calloc(1, sizeof(Board));
-    if (!board) return NULL;
-    
-    board->row_count = row_count;
-    board->column_count = column_count;
-    board->mine_count = mine_count;
-
-    for (int row = 0; row < board->row_count; row++) {
-        for (int column = 0; column < board->column_count; column++) {
-            board->tiles[row][column] = (Tile *)calloc(1, sizeof(Tile));
-            if (!board->tiles[row][column]) {
-                // Cleanup code...
-                return NULL;
-            }
-            board->tiles[row][column]->tile_state = CLOSED;
-            board->tiles[row][column]->is_mine = false;
-        }
-    }
-    
-    // Используем -1, -1 если первый клик не важен
-    set_mines_randomly(board, -1, -1);
-    set_tile_values(board);
-    return board;
-}
-
-// Остальные функции без изменений
-
+// Не забудьте обновить destroy_board() для работы с динамическим массивом
 void destroy_board(Board *board) {
-    if (board == NULL) return;
-
-    for (int row = 0; row < board->row_count; row++) {
-        for (int column = 0; column < board->column_count; column++) {
-            free(board->tiles[row][column]);
+    if (!board) return;
+    
+    if (board->tiles) {
+        for (int row = 0; row < board->row_count; row++) {
+            free(board->tiles[row]);
         }
+        free(board->tiles);
     }
     free(board);
 }
-
 bool is_game_solved(Board *board) {
     assert(board != NULL);
     for (int row = 0; row < board->row_count; row++) {
