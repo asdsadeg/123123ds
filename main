@@ -1,11 +1,12 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include "game.h"
 #include "ui.h"
 #include "board.h"
-#include <stdio.h>
 
 int main() {
     Game *game = create_game();
+    read_player_name(game);
     Board *board = create_our_board();
     if (board == NULL) {
         printf("Invalid board parameters. Exiting...\n");
@@ -14,7 +15,6 @@ int main() {
     }
 
     game->board = board;
-    read_player_name(game);
     play_game(game);
     free(game);
     exit(EXIT_SUCCESS);
