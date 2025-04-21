@@ -81,4 +81,51 @@ TEST test_read_board_parameters_valid() {
     // Mock input for testing
     const char *input = "5\n5\n5\n";
     FILE *mock_input = fmemopen((void*)input, strlen(input), "r");
-    freopen("mock_input",
+    freopen("mock_input", "r", stdin);
+    
+    ASSERT(read_board_parameters(&rows, &cols, &mines));
+    ASSERT_EQ(5, rows);
+    ASSERT_EQ(5, cols);
+    ASSERT_EQ(5, mines);
+    
+    fclose(mock_input);
+    PASS();
+}
+
+TEST test_create_our_board_valid() {
+    // Mock input for testing
+    const char *input = "5\n5\n5\n";
+    FILE *mock_input = fmemopen((void*)input, strlen(input), "r");
+    freopen("mock_input", "r", stdin);
+    
+    Board *board = create_our_board();
+    ASSERT(board != NULL);
+    if (board) {
+        ASSERT_EQ(5, board->row_count);
+        ASSERT_EQ(5, board->column_count);
+        ASSERT_EQ(5, board->mine_count);
+        destroy_board(board);
+    }
+    
+    fclose(mock_input);
+    PASS();
+}
+
+SUITE(test_board) {
+    RUN_TEST(verify_with_high_coordinates);
+    RUN_TEST(verify_with_low_coordinates);
+    RUN_TEST(verify_with_correct_coordinates);
+    RUN_TEST(is_game_solved_at_the_start);
+    RUN_TEST(is_game_solved_if_solved);
+    RUN_TEST(open_mines_after_win);
+    RUN_TEST(test_read_board_parameters_valid);
+    RUN_TEST(test_create_our_board_valid);
+}
+
+GREATEST_MAIN_DEFS();
+
+int main(int argc, char **argv) {
+    GREATEST_MAIN_BEGIN();
+    RUN_SUITE(test_board);
+    GREATEST_MAIN_END();
+}
