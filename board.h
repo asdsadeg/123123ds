@@ -25,8 +25,8 @@ typedef struct {
 } Board;
 
 Board *create_board(int row_count, int column_count, int mine_count);
-Board *create_interactive_board();
-bool input_board_parameters(int* row_count, int* col_count, int* mine_count);
+Board *create_our_board();
+bool read_board_parameters(int* row_count, int* col_count, int* mine_count);
 void destroy_board(Board *board);
 bool is_game_solved(Board *board);
 bool is_input_data_correct(Board *board, int input_row, int input_column);
