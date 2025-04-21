@@ -124,8 +124,7 @@ Board *create_our_board() {
         }
     }
     
-    set_mines_randomly(board);
-    set_tile_values(board);
+    set_mines_randomly(board, first_click_row, first_click_column);
     return board;
 }
 
@@ -156,7 +155,7 @@ Board *create_board(int row_count, int column_count, int mine_count) {
             board->tiles[row][column]->is_mine = false;
         }
     }
-    set_mines_randomly(board);
+    set_mines_randomly(board, first_click_row, first_click_column);
     set_tile_values(board);
     return board;
 }
