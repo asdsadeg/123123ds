@@ -67,7 +67,6 @@ TEST open_mines_after_loss() {
     set_tile_values(board);
     game->board = board;
 
-    // Симулируем проигрыш: открываем мину
     for (int row = 0; row < game->board->row_count; row++) {
         for (int column = 0; column < game->board->column_count; column++) {
             if (game->board->tiles[row][column]->is_mine) {
@@ -181,7 +180,7 @@ TEST set_mines_randomly_sets_correct_mine_count() {
 }
 
 TEST set_mines_randomly_skips_already_mined() {
-    Board *board = create_board(2, 2, 1); // Исправлено: mine_count = 1
+    Board *board = create_board(2, 2, 1);
     ASSERT(board != NULL);
     board->tiles[0][0]->is_mine = true;
     board->tiles[0][1]->is_mine = true;
@@ -196,7 +195,7 @@ TEST set_mines_randomly_skips_already_mined() {
             }
         }
     }
-    ASSERT_EQ(3, mine_count); // Теперь ожидаем 3 мины: 2 установлены вручную, 1 добавлена set_mines_randomly
+    ASSERT_EQ(3, mine_count);
     destroy_board(board);
     PASS();
 }
