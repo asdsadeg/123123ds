@@ -35,7 +35,7 @@ void destroy_board(Board *board);
 bool is_game_solved(Board *board);
 bool is_input_data_correct(Board *board, int input_row, int input_column);
 void open_all_mines(Board *board);
-void set_mines_randomly(Board *board);
+void set_mines_randomly(Board *board, int first_click_row, int first_click_column);
 void set_tile_values(Board *board);
 bool is_mine_on(Board *board, int row, int column);
 int count_neighbour_mines(Board *board, int row, int column);
