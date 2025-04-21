@@ -1,0 +1,84 @@
+#include "greatest.h"
+#include "../board.h"
+#include "../game.h"
+
+TEST verify_with_high_coordinates() {
+    Board *board = create_board(10, 10, 5);
+    ASSERT_FALSE(is_input_data_correct(board, 6, 11));
+    destroy_board(board);
+    PASS();
+}
+
+TEST verify_with_low_coordinates() {
+    Board *board = create_board(10, 10, 5);
+    ASSERT_FALSE(is_input_data_correct(board, -1, 4));
+    destroy_board(board);
+    PASS();
+}
+
+TEST verify_with_correct_coordinates() {
+    Board *board = create_board(10, 10, 5);
+    ASSERT(is_input_data_correct(board, 0, 9));
+    destroy_board(board);
+    PASS();
+}
+
+TEST is_game_solved_at_the_start() {
+    Game *game = create_game();
+    Board *board = create_board(10, 10, 5);
+    game->board = board;
+
+    bool is_solved = is_game_solved(game->board);
+    ASSERT_FALSE(is_solved);
+    destroy_game(game);
+    PASS();
+}
+
+TEST is_game_solved_if_solved() {
+    Game *game = create_game();
+    Board *board = create_board(10, 10, 5);
+    game->board = board;
+
+    for (int row = 0; row < game->board->row_count; row++) {
+        for (int column = 0; column < game->board->column_count; column++) {
+            if (!game->board->tiles[row][column]->is_mine) {
+                open_tile(game, row, column);
+            }
+        }
+    }
+    ASSERT(is_game_solved(game->board));
+    destroy_game(game);
+    PASS();
+}
+
+TEST open_mines_after_win() {
+    Game *game = create_game();
+    Board *board = create_board(10, 10, 5);
+    game->board = board;
+
+    for (int row = 0; row < game->board->row_count; row++) {
+        for (int column = 0; column < game->board->column_count; column++) {
+            if (!game->board->tiles[row][column]->is_mine) {
+                open_tile(game, row, column);
+            }
+        }
+    }
+    open_all_mines(game->board);
+    for (int row = 0; row < game->board->row_count; row++) {
+        for (int column = 0; column < game->board->column_count; column++) {
+            if (game->board->tiles[row][column]->is_mine) {
+                ASSERT_EQ(MARKED, game->board->tiles[row][column]->tile_state);
+            }
+        }
+    }
+    destroy_game(game);
+    PASS();
+}
+
+TEST test_read_board_parameters_valid() {
+    int rows, cols, mines;
+    
+    // Mock input for testing
+    const char *input = "5\n5\n5\n";
+    FILE *mock_input = fmemopen((void*)input, strlen(input), "r");
+    freopen("mock_input",
