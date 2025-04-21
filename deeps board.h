@@ -29,7 +29,7 @@ typedef struct {
 } Board;
 
 Board *create_board(int row_count, int column_count, int mine_count);
-Board *create_our_board();
+Board *create_our_board(int first_click_row, int first_click_column);  // Добавлены параметры
 bool read_board_parameters(int* row_count, int* col_count, int* mine_count);
 void destroy_board(Board *board);
 bool is_game_solved(Board *board);
