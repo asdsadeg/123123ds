@@ -6,7 +6,7 @@ TEST verify_with_high_coordinates() {
     Board *board = create_board(10, 10, 5);
     ASSERT(board != NULL);
     ASSERT_FALSE(is_input_data_correct(board, 6, 11));
-    destroy_board(board); // Добавляем очистку
+    destroy_board(board);
     PASS();
 }
 
@@ -14,7 +14,7 @@ TEST verify_with_low_coordinates() {
     Board *board = create_board(10, 10, 5);
     ASSERT(board != NULL);
     ASSERT_FALSE(is_input_data_correct(board, -1, 4));
-    destroy_board(board); // Добавляем очистку
+    destroy_board(board);
     PASS();
 }
 
@@ -22,7 +22,7 @@ TEST verify_with_correct_coordinates() {
     Board *board = create_board(10, 10, 5);
     ASSERT(board != NULL);
     ASSERT(is_input_data_correct(board, 0, 9));
-    destroy_board(board); // Добавляем очистку
+    destroy_board(board);
     PASS();
 }
 
@@ -30,7 +30,7 @@ TEST is_game_solved_at_the_start() {
     Game *game = create_game();
     Board *board = create_board(10, 10, 5);
     ASSERT(board != NULL);
-    set_mines_randomly(board, 0, 0); // Добавляем мины
+    set_mines_randomly(board, 0, 0);
     game->board = board;
 
     bool is_solved = is_game_solved(game->board);
@@ -43,14 +43,14 @@ TEST is_game_solved_if_solved() {
     Game *game = create_game();
     Board *board = create_board(10, 10, 5);
     ASSERT(board != NULL);
-    set_mines_randomly(board, 0, 0); // Добавляем мины
-    set_tile_values(board); // Устанавливаем значения клеток
+    set_mines_randomly(board, 0, 0);
+    set_tile_values(board);
     game->board = board;
 
     for (int row = 0; row < game->board->row_count; row++) {
         for (int column = 0; column < game->board->column_count; column++) {
             if (!game->board->tiles[row][column]->is_mine) {
-                open_tile(game, row, column);
+                game->board->tiles[row][column]->tile_state = OPEN;
             }
         }
     }
@@ -59,7 +59,7 @@ TEST is_game_solved_if_solved() {
     PASS();
 }
 
-TEST open_mines_after_loss() { // Переименовываем тест и исправляем логику
+TEST open_mines_after_loss() {
     Game *game = create_game();
     Board *board = create_board(10, 10, 5);
     ASSERT(board != NULL);
@@ -78,9 +78,9 @@ TEST open_mines_after_loss() { // Переименовываем тест и и�
     }
     open_all_mines(game->board);
     for (int row = 0; row < game->board->row_count; row++) {
-        for (int column = 0; column < game->board->column_count; column++) {
+        for (int column = 0; column < board->column_count; column++) {
             if (game->board->tiles[row][column]->is_mine) {
-                ASSERT_EQ(OPEN, game->board->tiles[row][column]->tile_state); // Исправляем ожидаемое значение
+                ASSERT_EQ(OPEN, game->board->tiles[row][column]->tile_state);
             }
         }
     }
@@ -89,7 +89,7 @@ TEST open_mines_after_loss() { // Переименовываем тест и и�
 }
 
 TEST is_mine_on_returns_true_for_mine() {
-    Board *board = create_board(5, 5, 0);
+    Board *board = create_board(5, 5, 1);
     ASSERT(board != NULL);
     board->tiles[2][3]->is_mine = true;
 
@@ -99,7 +99,7 @@ TEST is_mine_on_returns_true_for_mine() {
 }
 
 TEST is_mine_on_returns_false_for_non_mine() {
-    Board *board = create_board(5, 5, 0);
+    Board *board = create_board(5, 5, 1);
     ASSERT(board != NULL);
     ASSERT_FALSE(is_mine_on(board, 1, 1));
     destroy_board(board);
@@ -107,7 +107,7 @@ TEST is_mine_on_returns_false_for_non_mine() {
 }
 
 TEST is_mine_on_out_of_bounds_returns_false() {
-    Board *board = create_board(5, 5, 0);
+    Board *board = create_board(5, 5, 1);
     ASSERT(board != NULL);
     ASSERT_FALSE(is_mine_on(board, -1, 0));
     ASSERT_FALSE(is_mine_on(board, 0, 5));
@@ -117,7 +117,7 @@ TEST is_mine_on_out_of_bounds_returns_false() {
 }
 
 TEST count_neighbour_mines_with_single_mine_nearby() {
-    Board *board = create_board(3, 3, 0);
+    Board *board = create_board(3, 3, 1);
     ASSERT(board != NULL);
     board->tiles[0][0]->is_mine = true;
     int count = count_neighbour_mines(board, 1, 1);
@@ -127,7 +127,7 @@ TEST count_neighbour_mines_with_single_mine_nearby() {
 }
 
 TEST set_tile_values_sets_correct_values() {
-    Board *board = create_board(3, 3, 0);
+    Board *board = create_board(3, 3, 1);
     ASSERT(board != NULL);
     board->tiles[0][0]->is_mine = true;
     set_tile_values(board);
@@ -140,7 +140,7 @@ TEST set_tile_values_sets_correct_values() {
 }
 
 TEST mark_all_mines_marks_closed_tiles() {
-    Board *board = create_board(3, 3, 0);
+    Board *board = create_board(3, 3, 1);
     ASSERT(board != NULL);
     board->tiles[0][0]->tile_state = CLOSED;
     board->tiles[0][1]->tile_state = OPEN;
@@ -152,7 +152,7 @@ TEST mark_all_mines_marks_closed_tiles() {
 }
 
 TEST generate_random_coordinates_within_range() {
-    srand(0); // Фиксируем seed для воспроизводимости
+    srand(0);
     for (int i = 0; i < 100; i++) {
         int result = generate_random_coordinates(10);
         ASSERT(result >= 0 && result < 10);
@@ -163,6 +163,7 @@ TEST generate_random_coordinates_within_range() {
 TEST set_mines_randomly_sets_correct_mine_count() {
     Board *board = create_board(5, 5, 5);
     ASSERT(board != NULL);
+    srand(0);
     set_mines_randomly(board, 2, 2);
     int mine_count = 0;
 
@@ -179,96 +180,138 @@ TEST set_mines_randomly_sets_correct_mine_count() {
     PASS();
 }
 
+TEST set_mines_randomly_skips_already_mined() {
+    Board *board = create_board(2, 2, 1); // Исправлено: mine_count = 1
+    ASSERT(board != NULL);
+    board->tiles[0][0]->is_mine = true;
+    board->tiles[0][1]->is_mine = true;
+    srand(0);
+    set_mines_randomly(board, 1, 1);
+    int mine_count = 0;
+
+    for (int row = 0; row < board->row_count; row++) {
+        for (int col = 0; col < board->column_count; col++) {
+            if (board->tiles[row][col]->is_mine) {
+                mine_count++;
+            }
+        }
+    }
+    ASSERT_EQ(3, mine_count); // Теперь ожидаем 3 мины: 2 установлены вручную, 1 добавлена set_mines_randomly
+    destroy_board(board);
+    PASS();
+}
+
 TEST create_board_invalid_parameters() {
-    Board *board = create_board(31, 5, 5); // row_count > MAX_ROW_COUNT
+    Board *board = create_board(31, 5, 5);
     ASSERT(board == NULL);
     PASS();
 }
 
-TEST create_our_board_valid_parameters() {
-    FILE *input_file = tmpfile();
+TEST create_interactive_board_valid_parameters() {
+    FILE *input_file = fopen("test_input.txt", "w");
     ASSERT(input_file != NULL);
     fprintf(input_file, "5\n5\n5\n");
-    rewind(input_file);
+    fclose(input_file);
+
+    input_file = fopen("test_input.txt", "r");
+    ASSERT(input_file != NULL);
     FILE *original_stdin = stdin;
     stdin = input_file;
-    Board *board = create_our_board();
+    Board *board = create_interactive_board();
     stdin = original_stdin;
     fclose(input_file);
+    remove("test_input.txt");
 
     ASSERT(board != NULL);
     if (board != NULL) {
-        if (board->row_count > 0 && board->column_count > 0 && board->mine_count > 0) {
-            int area_field = board->row_count * board->column_count;
-            ASSERT(board->mine_count < area_field);
+        ASSERT_EQ(5, board->row_count);
+        ASSERT_EQ(5, board->column_count);
+        ASSERT_EQ(5, board->mine_count);
+        int area_field = board->row_count * board->column_count;
+        ASSERT(board->mine_count < area_field);
 
-            for (int row = 0; row < board->row_count; row++) {
-                for (int column = 0; column < board->column_count; column++) {
-                    ASSERT(board->tiles[row][column]->tile_state == CLOSED);
-                }
+        for (int row = 0; row < board->row_count; row++) {
+            for (int column = 0; column < board->column_count; column++) {
+                ASSERT(board->tiles[row][column]->tile_state == CLOSED);
+                ASSERT_FALSE(board->tiles[row][column]->is_mine);
             }
-
-            destroy_board(board);
         }
+        destroy_board(board);
     }
     PASS();
 }
 
-TEST create_our_board_invalid_row_count() {
-    FILE *input_file = tmpfile();
+TEST create_interactive_board_invalid_row_count() {
+    FILE *input_file = fopen("test_input.txt", "w");
     ASSERT(input_file != NULL);
     fprintf(input_file, "-1\n5\n5\n");
-    rewind(input_file);
+    fclose(input_file);
+
+    input_file = fopen("test_input.txt", "r");
+    ASSERT(input_file != NULL);
     FILE *original_stdin = stdin;
     stdin = input_file;
-    Board *board = create_our_board();
+    Board *board = create_interactive_board();
     stdin = original_stdin;
     fclose(input_file);
+    remove("test_input.txt");
 
     ASSERT(board == NULL);
     PASS();
 }
 
-TEST create_our_board_invalid_col_count() {
-    FILE *input_file = tmpfile();
+TEST create_interactive_board_invalid_col_count() {
+    FILE *input_file = fopen("test_input.txt", "w");
     ASSERT(input_file != NULL);
     fprintf(input_file, "5\n-1\n5\n");
-    rewind(input_file);
+    fclose(input_file);
+
+    input_file = fopen("test_input.txt", "r");
+    ASSERT(input_file != NULL);
     FILE *original_stdin = stdin;
     stdin = input_file;
-    Board *board = create_our_board();
+    Board *board = create_interactive_board();
     stdin = original_stdin;
     fclose(input_file);
+    remove("test_input.txt");
 
     ASSERT(board == NULL);
     PASS();
 }
 
-TEST create_our_board_invalid_mine_count() {
-    FILE *input_file = tmpfile();
+TEST create_interactive_board_invalid_mine_count() {
+    FILE *input_file = fopen("test_input.txt", "w");
     ASSERT(input_file != NULL);
     fprintf(input_file, "5\n5\n0\n");
-    rewind(input_file);
+    fclose(input_file);
+
+    input_file = fopen("test_input.txt", "r");
+    ASSERT(input_file != NULL);
     FILE *original_stdin = stdin;
     stdin = input_file;
-    Board *board = create_our_board();
+    Board *board = create_interactive_board();
     stdin = original_stdin;
     fclose(input_file);
+    remove("test_input.txt");
 
     ASSERT(board == NULL);
     PASS();
 }
 
-TEST create_our_board_invalid_mine_count_too_large() {
-    FILE *input_file = tmpfile();
+TEST create_interactive_board_invalid_mine_count_too_large() {
+    FILE *input_file = fopen("test_input.txt", "w");
     ASSERT(input_file != NULL);
-    fprintf(input_file, "5\n5\n25\n"); // 5*5 = 25, mine_count should be less than area
-    rewind(input_file);
+    fprintf(input_file, "5\n5\n25\n");
+    fclose(input_file);
+
+    input_file = fopen("test_input.txt", "r");
+    ASSERT(input_file != NULL);
     FILE *original_stdin = stdin;
     stdin = input_file;
-    Board *board = create_our_board();
+    Board *board = create_interactive_board();
     stdin = original_stdin;
     fclose(input_file);
+    remove("test_input.txt");
 
     ASSERT(board == NULL);
     PASS();
@@ -289,10 +332,11 @@ SUITE(test_board) {
     RUN_TEST(mark_all_mines_marks_closed_tiles);
     RUN_TEST(generate_random_coordinates_within_range);
     RUN_TEST(set_mines_randomly_sets_correct_mine_count);
+    RUN_TEST(set_mines_randomly_skips_already_mined);
     RUN_TEST(create_board_invalid_parameters);
-    RUN_TEST(create_our_board_valid_parameters);
-    RUN_TEST(create_our_board_invalid_row_count);
-    RUN_TEST(create_our_board_invalid_col_count);
-    RUN_TEST(create_our_board_invalid_mine_count);
-    RUN_TEST(create_our_board_invalid_mine_count_too_large);
+    RUN_TEST(create_interactive_board_valid_parameters);
+    RUN_TEST(create_interactive_board_invalid_row_count);
+    RUN_TEST(create_interactive_board_invalid_col_count);
+    RUN_TEST(create_interactive_board_invalid_mine_count);
+    RUN_TEST(create_interactive_board_invalid_mine_count_too_large);
 }
