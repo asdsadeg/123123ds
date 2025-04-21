@@ -100,8 +100,11 @@ void set_mines_randomly(Board *board, int first_click_row, int first_click_colum
 }
 
 /**
- * Read board parameters from user input.
- * @return true if parameters are valid, false otherwise
+ * Read board parameters (rows, columns, and mine count) from user input.
+ * @param row_count Pointer to store the number of rows.
+ * @param col_count Pointer to store the number of columns.
+ * @param mine_count Pointer to store the number of mines.
+ * @return true if the parameters are valid, false otherwise.
  */
 bool input_board_parameters(int* row_count, int* col_count, int* mine_count) {
     printf("Please enter row count: ");
@@ -135,8 +138,8 @@ bool input_board_parameters(int* row_count, int* col_count, int* mine_count) {
 }
 
 /**
- * Create and allocate Board with user-specified parameters.
- * @return pointer to the Board, or NULL if parameters are invalid
+ * Create and allocate a Board with user-specified parameters.
+ * @return Pointer to the created Board, or NULL if parameters are invalid or memory allocation fails.
  */
 Board *create_interactive_board() {
     Board *board = (Board *) calloc(1, sizeof(Board));
