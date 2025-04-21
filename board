@@ -100,14 +100,10 @@ void set_mines_randomly(Board *board, int first_click_row, int first_click_colum
 }
 
 /**
- * Prompt user to enter board parameters such as row count, column count, and mine count.
- * Validates the input and stores values in the provided pointers.
- * @param row_count pointer to variable for storing number of rows
- * @param col_count pointer to variable for storing number of columns
- * @param mine_count pointer to variable for storing mine count
- * @return true if input is valid, false otherwise
+ * Read board parameters from user input.
+ * @return true if parameters are valid, false otherwise
  */
-bool input_board_parameters(int* row_count, int* col_count, int* mine_count) {
+bool read_board_parameters(int* row_count, int* col_count, int* mine_count) {
     printf("Please enter row count: ");
     scanf("%d", row_count);
     if (*row_count <= 0 || *row_count > MAX_ROW_COUNT) {
@@ -139,19 +135,17 @@ bool input_board_parameters(int* row_count, int* col_count, int* mine_count) {
 }
 
 /**
- * Create and allocate Board with parameters entered via user input.
- * Uses interactive prompts to set up board size and mine count.
- * @return pointer to the Board, or NULL if input parameters are invalid
+ * Create and allocate Board with user-specified parameters.
+ * @return pointer to the Board, or NULL if parameters are invalid
  */
-Board *create_interactive_board	() {
+Board *create_our_board() {
     Board *board = (Board *) calloc(1, sizeof(Board));
-    if (board == NULL) {
-    return NULL;
-    }
+    if (board == NULL) return NULL;
+
     board->row_count = 0;
     board->column_count = 0;
     board->mine_count = 0;
-    if (input_board_parameters(&(board->row_count), &(board->column_count), &(board->mine_count)) == false) {
+    if (read_board_parameters(&(board->row_count), &(board->column_count), &(board->mine_count)) == false) {
         free(board);
         return NULL;
     }
@@ -160,6 +154,7 @@ Board *create_interactive_board	() {
         for (int column = 0; column < board->column_count; column++) {
             board->tiles[row][column] = (Tile *) calloc(1, sizeof(Tile));
             if (board->tiles[row][column] == NULL) {
+                // Clean up previously allocated tiles
                 for (int i = 0; i < row; i++) {
                     for (int j = 0; j < board->column_count; j++) {
                         free(board->tiles[i][j]);
@@ -175,6 +170,7 @@ Board *create_interactive_board	() {
             board->tiles[row][column]->is_mine = false;
         }
     }
+    // Mines are set after first click in game logic
     return board;
 }
 
@@ -216,6 +212,7 @@ Board *create_board(int row_count, int column_count, int mine_count) {
             board->tiles[row][column]->is_mine = false;
         }
     }
+    // Mines are set after first click in game logic
     return board;
 }
 
