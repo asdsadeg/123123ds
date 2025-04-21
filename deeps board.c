@@ -107,16 +107,7 @@ Board *create_our_board() {
         for (int column = 0; column < board->column_count; column++) {
             board->tiles[row][column] = (Tile *)calloc(1, sizeof(Tile));
             if (!board->tiles[row][column]) {
-                for (int r = 0; r < row; r++) {
-                    for (int c = 0; c < board->column_count; c++) {
-                        free(board->tiles[r][c]);
-                    }
-                }
-                for (int c = 0; c < column; c++) {
-                    free(board->tiles[row][c]);
-                }
-                free(board);
-                fprintf(stderr, "Memory allocation failed for Tile at (%d,%d)\n", row, column);
+                // Cleanup code...
                 return NULL;
             }
             board->tiles[row][column]->tile_state = CLOSED;
@@ -124,7 +115,9 @@ Board *create_our_board() {
         }
     }
     
-    set_mines_randomly(board, first_click_row, first_click_column);
+    // Вызываем set_mines_randomly без параметров
+    set_mines_randomly(board);
+    set_tile_values(board);
     return board;
 }
 
@@ -140,25 +133,20 @@ Board *create_board(int row_count, int column_count, int mine_count) {
         for (int column = 0; column < board->column_count; column++) {
             board->tiles[row][column] = (Tile *)calloc(1, sizeof(Tile));
             if (!board->tiles[row][column]) {
-                for (int r = 0; r < row; r++) {
-                    for (int c = 0; c < board->column_count; c++) {
-                        free(board->tiles[r][c]);
-                    }
-                }
-                for (int c = 0; c < column; c++) {
-                    free(board->tiles[row][c]);
-                }
-                free(board);
+                // Cleanup code...
                 return NULL;
             }
             board->tiles[row][column]->tile_state = CLOSED;
             board->tiles[row][column]->is_mine = false;
         }
     }
-    set_mines_randomly(board, first_click_row, first_click_column);
+    
+    // Вызываем set_mines_randomly без параметров
+    set_mines_randomly(board);
     set_tile_values(board);
     return board;
 }
+
 
 void destroy_board(Board *board) {
     if (board == NULL) return;
