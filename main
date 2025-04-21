@@ -6,16 +6,22 @@
 
 int main() {
     Game *game = create_game();
-    Board *board = create_interactive_board();
-    if (board == NULL) {
-        printf("Invalid board parameters. Exiting...\n");
-        free(game);
-        exit(EXIT_FAILURE);
+    if (!game) {
+        fprintf(stderr, "Failed to create game\n");
+        return EXIT_FAILURE;
     }
-
-    game->board = board;
+    
     read_player_name(game);
+    
+    Board *board = create_our_board();
+    if (!board) {
+        fprintf(stderr, "Failed to create game board\n");
+        destroy_game(game);
+        return EXIT_FAILURE;
+    }
+    
+    game->board = board;
     play_game(game);
-    free(game);
-    exit(EXIT_SUCCESS);
+    destroy_game(game);
+    return EXIT_SUCCESS;
 }
