@@ -91,7 +91,7 @@ bool read_board_parameters(int* row_count, int* col_count, int* mine_count) {
     return true;
 }
 
-Board *create_our_board() {
+Board *create_our_board(int first_click_row, int first_click_column) {
     Board *board = (Board *)calloc(1, sizeof(Board));
     if (!board) {
         fprintf(stderr, "Memory allocation failed for Board\n");
@@ -115,8 +115,7 @@ Board *create_our_board() {
         }
     }
     
-    // Вызываем set_mines_randomly без параметров
-    set_mines_randomly(board);
+    set_mines_randomly(board, first_click_row, first_click_column);
     set_tile_values(board);
     return board;
 }
@@ -141,12 +140,13 @@ Board *create_board(int row_count, int column_count, int mine_count) {
         }
     }
     
-    // Вызываем set_mines_randomly без параметров
-    set_mines_randomly(board);
+    // Используем -1, -1 если первый клик не важен
+    set_mines_randomly(board, -1, -1);
     set_tile_values(board);
     return board;
 }
 
+// Остальные функции без изменений
 
 void destroy_board(Board *board) {
     if (board == NULL) return;
